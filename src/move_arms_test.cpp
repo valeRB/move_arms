@@ -83,8 +83,15 @@ int main(int argc, char **argv)
     std::cout << "Left_arm \n" << std::endl;
     ROS_INFO("Current w: %f", group_l.getCurrentPose().pose.orientation.w); // 0.4599
     ROS_INFO("Current x: %f", group_l.getCurrentPose().pose.position.x); // 0.5853
-    ROS_INFO("Current y: %f", group_l.getCurrentPose().pose.position.y); // -0.188
+    ROS_INFO("Current y: %f", group_l.getCurrentPose().pose.position.y); // 0.188
     ROS_INFO("Current z: %f", group_l.getCurrentPose().pose.position.z); //1.25
+    std::vector<double> joint_state_r, joint_state_l;
+    group_r.getCurrentState()->copyJointGroupPositions(group_r.getCurrentState()->getRobotModel()->getJointModelGroup(group_r.getName()), joint_state_r);
+    std::cout << "Join_values for  \n" << std::endl;
+    for(int i=0; i<=7; i++)
+    {
+        std::cout << joint_state_r[i] << std::endl;
+    }
 
     // Now, we call the planner to compute the plan
     // and visualize it.
@@ -98,7 +105,25 @@ int main(int argc, char **argv)
     // Path constraints can easily be specified for a link on the robot.
     // Let's specify a path constraint and a pose goal for our group.
     // First define the path constraint.
+    //std::vector<double> joint_state_r, joint_state_l;
+    //group_r.getCurrentState()->copyJointGroupPositions(group_r.getCurrentState()->getRobotModel()->getJointModelGroup(group_r.getName()), joint_state_r);
+    // {0.0, 0.99, 0.0, -0.54, 0.0, -0.48, 1.66, 0.0}
+    joint_state_r[0] = 0.0;
+    joint_state_r[1] = 0.99;
+    joint_state_r[2] = 0.0;
+    joint_state_r[3] = -0.54;
+    joint_state_r[4] = 0.0;
+    joint_state_r[5] = -0.48;
+    joint_state_r[6] = 1.66;
+    joint_state_l =  joint_state_r;
+    group_r.setJointValueTarget(joint_state_r);
+    group_l.setJointValueTarget(joint_state_l);
+    bool success_r = group_r.plan(my_plan);
+    ROS_INFO("Visualizing plan 3 right_arm %s",success_r?"":"FAILED");
+    bool success_l = group_l.plan(my_plan);
+    ROS_INFO("Visualizing plan 3 left_arm %s",success_l?"":"FAILED");
 
+/*
     moveit_msgs::OrientationConstraint ocm;
     ocm.link_name =  group_r.getEndEffectorLink().c_str(); //"r_wrist_roll_link";
     ocm.header.frame_id = "base_link";
@@ -152,18 +177,23 @@ int main(int argc, char **argv)
 
     // Now we will plan to the earlier pose target from the new
     // start state that we have just created.
-    for(int i=1; i<=5; i++)
+
+    for(int i=1; i<=2; i++)
     {
     group_r.setPoseTarget(target_pose1_right);
     group_l.setPoseTarget(target_pose1_left);
     bool success_r = group_r.plan(my_plan);
     ROS_INFO("Visualizing plan 3 right_arm %s",success_r?"":"FAILED");
-    bool success_l = group_l.plan(my_plan);
-    ROS_INFO("Visualizing plan 3 left_arm %s",success_l?"":"FAILED");
-    /* Sleep to give Rviz time to visualize the plan. */
+    group_r.getCurrentState()->copyJointGroupPositions(group_r.getCurrentState()->getRobotModel()->getJointModelGroup(group_r.getName()), group_r_JointValues);
+    //bool success_l = group_l.plan(my_plan);
+    //ROS_INFO("Visualizing plan 3 left_arm %s",success_l?"":"FAILED");
+    // Sleep to give Rviz time to visualize the plan.
     sleep(3.0);
     }
-
+    // When done with the path constraint be sure to clear it.
+    group_r.clearPathConstraints();
+    group_l.clearPathConstraints();
+*/
     // Visualizing plans
     // ^^^^^^^^^^^^^^^^^
     // Now that we have a plan we can visualize it in Rviz. This is not
@@ -223,8 +253,7 @@ int main(int argc, char **argv)
 
 
 
-    // When done with the path constraint be sure to clear it.
-    //group.clearPathConstraints();
+
 
 
 //    // Cartesian Paths
