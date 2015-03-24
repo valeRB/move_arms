@@ -1,0 +1,9 @@
+<launch>
+e
+<!-- <include file="$(find pr2_moveit_config)/launch/demo.launch"/> -->
+	
+
+	<node name="move_arms_test" pkg="move_arms" type="move_arms_test" respawn="false" output="screen">
+	</node>
+
+</launch>
